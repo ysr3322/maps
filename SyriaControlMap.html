@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Display a map on a webpage</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
+    <style>
+        html,body { margin: 0; padding: 0;height:100% ; }
+        #map { height:100% ; width: 100%; flex-grow: 1;}
+    </style>
+</head>
+<body>
+       
+    <div id="map"></div>
+    
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoieXNyLXdhdGFuIiwiYSI6ImNqeDY5MmtpbTA1Y2M0OXM5NXlxNWx4d2wifQ.IGwsie3bV2QJ4swsLhyI4g';
+        const map = new mapboxgl.Map({
+            container: 'map', // container ID
+            // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+            style: 'mapbox://styles/mapbox/streets-v12', // style URL
+            center: [36.763275,36.215256], // starting position [lng, lat]
+            zoom: 9 // starting zoom
+        });
+
+        map.on('load', () => {
+    map.setFog({});
+    fetch('https://www.googleapis.com/drive/v3/files/1WuKeLgYJmm0X69EdEFtJXkR_ed522pi7?alt=media', {
+        headers: {
+            Authorization: 'Bearer 1//04UytZ_vp5PhnCgYIARAAGAQSNwF-L9IrduBAdr4XMi6IPNOPW5Aqek9CKolA7CkA3jB-cdK9O97EP2PpNgz4dp3nac343ChnJj0'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        map.addSource('Syria_ad', {
+            type: 'geojson',
+            data: data,
+            promoteId: 'boro_code'
+        });
+        map.addLayer({
+            id: 'Syria_Ad_fill',
+            type: 'fill',
+            source: 'Syria_ad',
+            paint: {
+                'fill-color': [
+                    'match' ,
+                    ['get', 'boro_name'],
+                    'Regime',
+                    'red',
+                    'Jolan',
+                    '#fa5fde',
+                    'HTS',
+                    'green',
+                    'Kurd',
+                    'yellow',
+                    'EestEuphrates',
+                    '#5f98fa',
+                    'ZytonEuphrates',
+                    '#5ffa9d',
+                    'Al-Tanf',
+                    '#e3fa5f',
+                    'white'
+                ],
+                'fill-opacity': [
+                    'case',
+                    ['boolean', ['feature-state', 'hover'], false],
+                    0.7,
+                    0.4
+                ]
+            },
+            layout: {
+                visibility: 'visible'
+            }
+        }, 'road-label');
+        
+        map.addLayer({
+            id: 'Syria_Ad_line',
+            type: 'line',
+            source: 'Syria_ad',
+            paint: {
+                'line-color': 'white'
+            }
+        }, 'road-label')
+        map.on('click', (e) => {
+            const [features] = map.queryRenderedFeatures(e.point ,{
+            layers: ['Syria_Ad_fill']
+        });
+        if (features) {
+            const {boro_name , Areal_Roudness} = features.properties
+            alert(`The areal roundness of ${boro_name} is ${Areal_Roudness}` )
+        }
+    
+    })
+    let hoveredStateId = null
+
+    map.on('mousemove', 'Syria_Ad_fill', (e) => {
+        if (e.features.length > 0) {
+        if (hoveredStateId !== null) {
+        map.setFeatureState(
+        { source: 'Syria_ad', id: hoveredStateId },
+        { hover: false }
+        );
+        }
+        hoveredStateId = e.features[0].id;
+        map.setFeatureState(
+        { source: 'Syria_ad', id: hoveredStateId },
+        { hover: true }
+        );
+        }
+        }) 
+
+        map.on('mouseleave', 'Syria_Ad_fill', () => {
+            if (hoveredStateId !== null) {
+            map.setFeatureState(
+            { source: 'Syria_ad', id: hoveredStateId },
+            { hover: false }
+            );
+            }
+            hoveredStateId = null;
+            });
+    });
+});
+document.querySelector('#toggle-hide-layer').addEventListener('click' ,() => {
+           const IsVisible = map.getLayoutProperty('Syria_Ad_fill' , 'visibility') === 'visible'
+           if (IsVisible) {
+            map.setLayoutProperty('Syria_Ad_fill' , 'visibility' , 'none')
+           } else {
+            map.setLayoutProperty('Syria_Ad_fill' , 'visibility' , 'visible')
+           }
+        })
+    </script>
+
+</body>
+</html>
