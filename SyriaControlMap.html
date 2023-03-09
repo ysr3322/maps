@@ -9,24 +9,11 @@
 <style>
 html,body { margin: 0; padding: 0;height:100% ; }
 #map { height:100% ; width: 100%; flex-grow: 1;}
-#container {
-    display: flex;
-    height:100% ;
-}
-#sidebar {
-    width: 150px;
-    flex-shrink: 0;
-    height:100% ;
-    padding: 30px;
 
-}
 </style>
 </head>
 <body>
-    <div id="container">
-        <div id="sidebar">
-            <button id="toggle-hide-layer">Toggle</button>
-        </div>
+
     
 <div id="map"></div>
 </div>
@@ -39,54 +26,13 @@ html,body { margin: 0; padding: 0;height:100% ; }
         center: [36.763275,36.215256], // starting position [lng, lat]
         zoom: 9 // starting zoom
     });
-    const points =[
-        {
-            name: 'Aleppo',
-            color: '#0271e0',
-            lnglat: [36.771721,36.212198]
-        },
-        {
-            name: 'Azaz',
-            color: 'fa0a6a',
-            lnglat: [37.209766,36.565205]
-        },
-        {
-            name: 'Idleb',
-            color: '#6cbf3f',
-            lnglat: [36.714583,36.088790]
-        }
-    ]
-    points.forEach(({name,color,lnglat}) => {
-        const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-        name
-        );
-        new mapboxgl.Marker({
-            color: color,
-            scale: 0.8
-        })
-            .setLngLat(lnglat)
-            .setPopup(popup)
-            .addTo(map);
-
-
-    })
-    // const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-    //     'Pepole In Need.'
-    //     );
-    //     new mapboxgl.Marker({
-    //         color: '#fa0a6a',
-    //         scale: 0.8
-    //     })
-    //         .setLngLat([36.763275,36.207256])
-    //         .setPopup(popup)
-    //         .addTo(map);
 
     map.on('load', () => {
         map.setFog({});
     
     map.addSource('Syria_ad', {
         type: 'geojson',
-        data: 'https://github.com/ysr3322/maps/blob/c4be29c22e141db5032f0dc92f94336a439bbc9d/SyriaLiveMap.geojson',
+        data: 'https://raw.githubusercontent.com/ysr3322/maps/main/SyriaLiveMap.geojson',
         promoteId: 'boro_code'
     
         });
@@ -134,53 +80,9 @@ html,body { margin: 0; padding: 0;height:100% ; }
         }
         }, 'road-label')
 
-    map.on('click', (e) => {
-            const [features] = map.queryRenderedFeatures(e.point ,{
-            layers: ['Syria_Ad_fill']
-        });
-        if (features) {
-            const {boro_name , Areal_Roudness} = features.properties
-            alert(`The areal roundness of ${boro_name} is ${Areal_Roudness}` )
-        }
-    
-    })
 
-    let hoveredStateId = null
+            });
 
-    map.on('mousemove', 'Syria_Ad_fill', (e) => {
-        if (e.features.length > 0) {
-        if (hoveredStateId !== null) {
-        map.setFeatureState(
-        { source: 'Syria_ad', id: hoveredStateId },
-        { hover: false }
-        );
-        }
-        hoveredStateId = e.features[0].id;
-        map.setFeatureState(
-        { source: 'Syria_ad', id: hoveredStateId },
-        { hover: true }
-        );
-        }
-        }) 
-        
-        map.on('mouseleave', 'Syria_Ad_fill', () => {
-            if (hoveredStateId !== null) {
-            map.setFeatureState(
-            { source: 'Syria_ad', id: hoveredStateId },
-            { hover: false }
-            );
-            }
-            hoveredStateId = null;
-            });
-            });
-        document.querySelector('#toggle-hide-layer').addEventListener('click' ,() => {
-           const IsVisible = map.getLayoutProperty('Syria_Ad_fill' , 'visibility') === 'visible'
-           if (IsVisible) {
-            map.setLayoutProperty('Syria_Ad_fill' , 'visibility' , 'none')
-           } else {
-            map.setLayoutProperty('Syria_Ad_fill' , 'visibility' , 'visible')
-           }
-        })
 </script>
 
 </body>
