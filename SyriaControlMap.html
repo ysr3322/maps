@@ -1,89 +1,140 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Display a map on a webpage</title>
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
-    <style>
-        html,body { margin: 0; padding: 0;height:100% ; }
-        #map { height:100% ; width: 100%; flex-grow: 1;}
-    </style>
+<meta charset="utf-8">
+<title>Display a map on a webpage</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
+<style>
+html,body { margin: 0; padding: 0;height:100% ; }
+#map { height:100% ; width: 100%; flex-grow: 1;}
+#container {
+    display: flex;
+    height:100% ;
+}
+#sidebar {
+    width: 150px;
+    flex-shrink: 0;
+    height:100% ;
+    padding: 30px;
+
+}
+</style>
 </head>
 <body>
-       
-    <div id="map"></div>
+    <div id="container">
+        <div id="sidebar">
+            <button id="toggle-hide-layer">Toggle</button>
+        </div>
     
-    <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoieXNyLXdhdGFuIiwiYSI6ImNqeDY5MmtpbTA1Y2M0OXM5NXlxNWx4d2wifQ.IGwsie3bV2QJ4swsLhyI4g';
-        const map = new mapboxgl.Map({
-            container: 'map', // container ID
-            // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
-            style: 'mapbox://styles/mapbox/streets-v12', // style URL
-            center: [36.763275,36.215256], // starting position [lng, lat]
-            zoom: 9 // starting zoom
-        });
-
-        map.on('load', () => {
-    map.setFog({});
-    fetch('https://www.googleapis.com/drive/v3/files/1WuKeLgYJmm0X69EdEFtJXkR_ed522pi7?alt=media', {
-        headers: {
-            Authorization: 'Bearer 1//04UytZ_vp5PhnCgYIARAAGAQSNwF-L9IrduBAdr4XMi6IPNOPW5Aqek9CKolA7CkA3jB-cdK9O97EP2PpNgz4dp3nac343ChnJj0'
+<div id="map"></div>
+</div>
+<script>
+	mapboxgl.accessToken = 'pk.eyJ1IjoieXNyLXdhdGFuIiwiYSI6ImNqeDY5MmtpbTA1Y2M0OXM5NXlxNWx4d2wifQ.IGwsie3bV2QJ4swsLhyI4g';
+    const map = new mapboxgl.Map({
+        container: 'map', // container ID
+        // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+        style: 'mapbox://styles/mapbox/streets-v12', // style URL
+        center: [36.763275,36.215256], // starting position [lng, lat]
+        zoom: 9 // starting zoom
+    });
+    const points =[
+        {
+            name: 'Aleppo',
+            color: '#0271e0',
+            lnglat: [36.771721,36.212198]
+        },
+        {
+            name: 'Azaz',
+            color: 'fa0a6a',
+            lnglat: [37.209766,36.565205]
+        },
+        {
+            name: 'Idleb',
+            color: '#6cbf3f',
+            lnglat: [36.714583,36.088790]
         }
+    ]
+    points.forEach(({name,color,lnglat}) => {
+        const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+        name
+        );
+        new mapboxgl.Marker({
+            color: color,
+            scale: 0.8
+        })
+            .setLngLat(lnglat)
+            .setPopup(popup)
+            .addTo(map);
+
+
     })
-    .then(response => response.json())
-    .then(data => {
-        map.addSource('Syria_ad', {
-            type: 'geojson',
-            data: data,
-            promoteId: 'boro_code'
+    // const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+    //     'Pepole In Need.'
+    //     );
+    //     new mapboxgl.Marker({
+    //         color: '#fa0a6a',
+    //         scale: 0.8
+    //     })
+    //         .setLngLat([36.763275,36.207256])
+    //         .setPopup(popup)
+    //         .addTo(map);
+
+    map.on('load', () => {
+        map.setFog({});
+    
+    map.addSource('Syria_ad', {
+        type: 'geojson',
+        data: 'https://github.com/ysr3322/maps/blob/c4be29c22e141db5032f0dc92f94336a439bbc9d/SyriaLiveMap.geojson',
+        promoteId: 'boro_code'
+    
         });
-        map.addLayer({
-            id: 'Syria_Ad_fill',
-            type: 'fill',
-            source: 'Syria_ad',
-            paint: {
-                'fill-color': [
-                    'match' ,
-                    ['get', 'boro_name'],
-                    'Regime',
-                    'red',
-                    'Jolan',
-                    '#fa5fde',
-                    'HTS',
-                    'green',
-                    'Kurd',
-                    'yellow',
-                    'EestEuphrates',
-                    '#5f98fa',
-                    'ZytonEuphrates',
-                    '#5ffa9d',
-                    'Al-Tanf',
-                    '#e3fa5f',
-                    'white'
-                ],
-                'fill-opacity': [
-                    'case',
-                    ['boolean', ['feature-state', 'hover'], false],
-                    0.7,
-                    0.4
-                ]
-            },
-            layout: {
-                visibility: 'visible'
-            }
-        }, 'road-label');
-        
-        map.addLayer({
-            id: 'Syria_Ad_line',
-            type: 'line',
-            source: 'Syria_ad',
-            paint: {
-                'line-color': 'white'
-            }
+    map.addLayer({
+        id: 'Syria_Ad_fill',
+        type: 'fill',
+        source: 'Syria_ad',
+        paint: {
+            'fill-color': [
+                'match' ,
+                ['get', 'boro_name'],
+                'Regime',
+                'red',
+                'Jolan',
+                '#fa5fde',
+                'HTS',
+                'green',
+                'Kurd',
+                'yellow',
+                'EestEuphrates',
+                '#5f98fa',
+                'ZytonEuphrates',
+                '#5ffa9d',
+                'Al-Tanf',
+                '#e3fa5f',
+                'white'
+            ],
+            'fill-opacity': [
+                'case',
+                ['boolean', ['feature-state', 'hover'], false],
+                0.7,
+                0.4
+            ]
+        },
+        layout: {
+            visibility: 'visible'
+        }
         }, 'road-label')
-        map.on('click', (e) => {
+        map.addLayer({
+        id: 'Syria_Ad_line',
+        type: 'line',
+        source: 'Syria_ad',
+        paint: {
+            'line-color': 'white'
+        }
+        }, 'road-label')
+
+    map.on('click', (e) => {
             const [features] = map.queryRenderedFeatures(e.point ,{
             layers: ['Syria_Ad_fill']
         });
@@ -93,6 +144,7 @@
         }
     
     })
+
     let hoveredStateId = null
 
     map.on('mousemove', 'Syria_Ad_fill', (e) => {
@@ -110,7 +162,7 @@
         );
         }
         }) 
-
+        
         map.on('mouseleave', 'Syria_Ad_fill', () => {
             if (hoveredStateId !== null) {
             map.setFeatureState(
@@ -120,9 +172,8 @@
             }
             hoveredStateId = null;
             });
-    });
-});
-document.querySelector('#toggle-hide-layer').addEventListener('click' ,() => {
+            });
+        document.querySelector('#toggle-hide-layer').addEventListener('click' ,() => {
            const IsVisible = map.getLayoutProperty('Syria_Ad_fill' , 'visibility') === 'visible'
            if (IsVisible) {
             map.setLayoutProperty('Syria_Ad_fill' , 'visibility' , 'none')
@@ -130,7 +181,7 @@ document.querySelector('#toggle-hide-layer').addEventListener('click' ,() => {
             map.setLayoutProperty('Syria_Ad_fill' , 'visibility' , 'visible')
            }
         })
-    </script>
+</script>
 
 </body>
 </html>
